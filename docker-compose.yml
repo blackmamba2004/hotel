@@ -1,0 +1,15 @@
+services:
+  hotel-api-db:
+    image: postgres:16.4
+    container_name: hotel-api-db
+    hostname: db
+    ports:
+      - "5555:5432"
+    volumes:
+      - ./data/pg:/var/lib/postgresql/data/pgdata
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      

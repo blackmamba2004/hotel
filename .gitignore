@@ -1,0 +1,12 @@
+.vscode
+.mypy_cache
+docker-stack.yml
+*.ipynb
+.ipynb_checkpoints
+.idea
+.env
+data
+.venv
+.env.local
+__pycache__
+pytest-report.junit.xml
