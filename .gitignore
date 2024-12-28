@@ -1,8 +1,8 @@
 .vscode
 .mypy_cache
 docker-stack.yml
-*.ipynb
-.ipynb_checkpoints
+# *.ipynb
+# .ipynb_checkpoints
 .idea
 .env
 data

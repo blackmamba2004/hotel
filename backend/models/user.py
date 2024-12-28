@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.enums.user import Gender
 from backend.models.base import BaseModel
@@ -15,3 +15,5 @@ class User(BaseModel):
     gender: Mapped[Gender | None] = mapped_column(default=Gender.MALE, server_default=text("'MALE'"))
     is_active: Mapped[bool] = mapped_column(default=True)
     is_superuser: Mapped[bool] = mapped_column(default=False)
+
+    bookings = relationship("Booking", back_populates="user")
