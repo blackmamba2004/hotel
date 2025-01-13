@@ -2,6 +2,7 @@ from typing import AsyncGenerator
 
 from sqlalchemy import AsyncAdaptedQueuePool
 from sqlalchemy.ext.asyncio import (
+    AsyncSession,
     create_async_engine, 
     async_sessionmaker,
 )
@@ -12,7 +13,7 @@ from backend.config import settings
 async_engine = create_async_engine(
     settings.SQLALCHEMY_ASYNC_DATABASE_URI,
     pool_pre_ping=True,
-    poolclass=AsyncAdaptedQueuePool,
+    # poolclass=AsyncAdaptedQueuePool,
     pool_size=500,
     max_overflow=50,
     echo=True,
@@ -24,6 +25,6 @@ async_session = async_sessionmaker(
     expire_on_commit=False,
 )
 
-async def get_db() -> AsyncGenerator:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session

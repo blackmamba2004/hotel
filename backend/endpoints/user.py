@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.crud.user import crud_user
-from backend.deps import get_db
 from backend.schemas.user import CreatingUser, GettingUser
 
 
@@ -18,7 +17,7 @@ router = APIRouter(
     name="Получить всех пользователей"
 )
 async def get_users(
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends()
 ):
     return await crud_user.get_many(db)
 
@@ -30,7 +29,7 @@ async def get_users(
 )
 async def create_user(
     body: CreatingUser,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends()
 ):
     return await crud_user.create(db, body)
 
@@ -42,6 +41,6 @@ async def create_user(
 )
 async def get_user(
     user_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends()
 ):
     return await crud_user.get(db, user_id)

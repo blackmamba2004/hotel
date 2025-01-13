@@ -10,9 +10,9 @@ from backend.pkg.auth.middlewares.jwt.errors import AccessError
 from backend.crud.user import crud_user
 
 
-def __try_to_get_clean_token(authorization_header: str) -> str:
+def __try_to_get_clean_token(authorization_header: str | None) -> str:
     if authorization_header is None:
-        raise HTTPException(detail=AccessError.get_token_is_not_specified_error(), status_code=400)
+        raise HTTPException(detail=dict(AccessError.get_token_is_not_specified_error()), status_code=400)
 
     if 'Bearer' not in authorization_header:
         raise HTTPException(detail=dict(AccessError.get_incorrect_auth_header_form_error()), status_code=400)

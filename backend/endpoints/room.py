@@ -1,22 +1,20 @@
-from datetime import date, datetime, timedelta
-from typing import List
+from datetime import date
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.crud import crud_room
-from backend.deps import get_db
-from backend.schemas.room import GettingRoomInfo
+from backend.schemas.room import GettingRoom
 
 router = APIRouter(prefix="/hotels", tags=["Отели / Комнаты"])
 
 
-@router.get("/{hotel_id}/rooms")
+@router.get("/rooms")
 async def get_rooms_by_time(
-    hotel_id: int,
-    db: AsyncSession = Depends(get_db),
-    date_from: date = Query(..., description=f"Например, {datetime.now().date()}"),
-    date_to: date = Query(..., description=f"Например, {(datetime.now() + timedelta(days=14)).date()}"),
-) -> List[GettingRoomInfo]:
-    rooms = await crud_room.find_all(db, hotel_id, date_from, date_to)
-    return rooms
+    date_from: date,
+    date_to: date,
+    request: Request,
+    db: AsyncSession = Depends()
+) -> list[GettingRoom]:
+    base_url = str(request.base_url)
+    return await crud_room.get_rooms_with_images(db, base_url, date_from, date_to)

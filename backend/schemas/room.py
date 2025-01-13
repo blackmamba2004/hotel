@@ -1,4 +1,4 @@
-from typing import Optional
+from pydantic import Field
 
 from backend.schemas.base import BaseSchema
 
@@ -6,12 +6,7 @@ from backend.schemas.base import BaseSchema
 class GettingRoom(BaseSchema):
     id: int
     hotel_id: int
-    name: str
-    description: Optional[str]
+    number: int
+    description: str | None = Field(None)
     price: int
-    image_id: int
-
-
-class GettingRoomInfo(GettingRoom):
-    total_cost: int
-    rooms_left: int
+    image_url: str | None = Field(None)

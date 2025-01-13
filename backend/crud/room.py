@@ -1,64 +1,87 @@
 # from typing import Any
+from fastapi import Request
+
 from datetime import date
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.selectable import CTE, Select
 
 from backend.crud.base import CRUDBase
 from backend.models import Booking, Room
 
-# from app.logger import logger
-
 
 class CRUDRoom(CRUDBase):
-    async def find_all(self, db: AsyncSession, hotel_id: int, date_from: date, date_to: date):
-        """
-        WITH booked_rooms AS (
-            SELECT room_id, COUNT(room_id) AS rooms_booked
-            FROM bookings
-            WHERE (date_from >= '2023-05-15' AND date_from <= '2023-06-20') OR
-                  (date_from <= '2023-05-15' AND date_to > '2023-05-15')
-            GROUP BY room_id
-        )
-        SELECT
-            -- все столбцы из rooms,
-            (quantity - COALESCE(rooms_booked, 0)) AS rooms_left FROM rooms
-        LEFT JOIN booked_rooms ON booked_rooms.room_id = rooms.id
-        WHERE hotel_id = 1
-        """
-        booked_rooms = (
-            select(Booking.room_id, func.count(Booking.room_id).label("rooms_booked"))
-            .select_from(Booking)
+    def get_booked_rooms(
+        self, date_from, date_to, as_cte=False
+    ) -> CTE | Select:
+        query = (
+            select(Room.id)
+            .join(Booking, Room.id == Booking.room_id)
             .where(
-                or_(
-                    and_(
-                        Booking.date_from >= date_from,
-                        Booking.date_from <= date_to,
-                    ),
-                    and_(
-                        Booking.date_from <= date_from,
-                        Booking.date_to > date_from,
-                    ),
-                ),
-            )
-            .group_by(Booking.room_id)
-            .cte("booked_rooms")
-        )
-        
-        get_rooms = (
-            select(
-                Room.__table__.columns,
-                (Room.price * (date_to - date_from).days).label("total_cost"),
-                (Room.quantity - func.coalesce(booked_rooms.c.rooms_booked, 0)).label("rooms_left"),
-            )
-            .join(booked_rooms, booked_rooms.c.room_id == Room.id, isouter=True)
-            .where(
-                Room.hotel_id == hotel_id
+                and_(
+                    Booking.date_to >= date_from,
+                    Booking.date_from <= date_to,
+                )
             )
         )
-        # logger.debug(get_rooms.compile(engine, compile_kwargs={"literal_binds": True}))
-        rooms = await db.execute(get_rooms)
-        return rooms.mappings().all()
+        return (
+            query.cte("booked_rooms") if as_cte 
+            else query
+        )
 
+    @classmethod
+    async def is_booked(
+        cls,
+        db: AsyncSession, 
+        room_id: int,
+        date_from: date, 
+        date_to: date,
+    ) -> bool:
+        query = (
+            select(
+               exists(
+                   select(1)
+                   .select_from(Room)
+                   .join(Booking, Room.id == Booking.room_id)
+                   .where(
+                       and_(
+                           Room.id == room_id,
+                           Booking.date_to >= date_from,
+                           Booking.date_from <= date_to
+                       )
+                   )
+                   .limit(1)
+                )
+            )
+        )
+
+        return (await db.execute(query)).scalar()
+    
+    async def get_rooms_with_images(
+        self, 
+        db: AsyncSession, 
+        base_url: str,
+        date_from: date, 
+        date_to: date,
+    ):
+        booked_rooms: CTE = self.get_booked_rooms(date_from, date_to, as_cte=True)
+
+        get_rooms_left = (
+            select(
+                Room.id,
+                Room.hotel_id,
+                Room.number, 
+                Room.description,
+                Room.price,
+                (base_url + Room.image_url).label("image_url")
+            )
+            .outerjoin(booked_rooms, Room.id == booked_rooms.c.id)
+            .where(booked_rooms.c.id == None)
+        )
+
+        rooms = (await db.execute(get_rooms_left)).mappings().all()
+
+        return rooms
 
 crud_room = CRUDRoom(Room)

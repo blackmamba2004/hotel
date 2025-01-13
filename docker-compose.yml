@@ -2,7 +2,8 @@ services:
   hotel-api-db:
     image: postgres:16.4
     container_name: hotel-api-db
-    hostname: db
+    profiles: [ "ubuntu", "windows" ]
+    hostname: hotel-api-db
     ports:
       - "5555:5432"
     volumes:
@@ -12,4 +13,23 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       PGDATA: /var/lib/postgresql/data/pgdata
-      
+  
+  hotel-api-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hotel-api-backend
+    profiles: [ "windows" ]
+    depends_on:
+      - hotel-api-db
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /app
+    command: ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload", "--log-level", "debug"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app/backend
+      - ./poetry.lock:/app/poetry.lock
+      - ./pyproject.toml:/app/pyproject.toml

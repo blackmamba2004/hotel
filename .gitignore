@@ -1,8 +1,8 @@
 .vscode
 .mypy_cache
 docker-stack.yml
-# *.ipynb
-# .ipynb_checkpoints
+*.ipynb
+.ipynb_checkpoints
 .idea
 .env
 data
@@ -10,3 +10,4 @@ data
 .env.local
 __pycache__
 pytest-report.junit.xml
+static

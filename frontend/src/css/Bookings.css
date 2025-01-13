@@ -1,0 +1,49 @@
+.booking-list-container {
+    padding: 15px; /* Уменьшено с 20px */
+    max-width: 500px; /* Уменьшено с 600px */
+    margin: 0 auto;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+.booking-list {
+    padding: 0;
+    list-style: none;
+}
+
+.booking-item {
+    background-color: #ffffff;
+    margin-bottom: 10px; /* Уменьшено с 15px */
+    padding: 10px; /* Уменьшено с 15px */
+    border-radius: 5px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.booking-details p {
+    margin: 0 0 8px; /* Уменьшено с 10px */
+    color: #555;
+}
+
+.booking-details strong {
+    color: #000;
+}
+
+.delete-button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}

@@ -1,13 +1,11 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, Security
-# from pydantic import parse_obj_as
+from fastapi import APIRouter, Depends, Request, Security
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.crud import crud_booking
-from backend.deps import get_db
 from backend.exceptions import RoomCannotBeBooked
 from backend.pkg.auth.middlewares.jwt.service import check_access_token
-from backend.schemas.booking import GettingBookingInfo, CreatingBooking
+from backend.schemas.booking import GettingBooking, CreatingBooking
 
 
 router = APIRouter(
@@ -18,14 +16,14 @@ router = APIRouter(
 
 
 @router.get(
-    path="", 
+    path="/me",
     name="Получить все бронирования пользователя"
 )
-async def get_bookings(
+async def get_me_bookings(
     request: Request,
-    db: AsyncSession = Depends(get_db),
-) -> list[GettingBookingInfo]:
-    return await crud_booking.find_all_with_images(db, user_id=request.state.user.id)
+    db: AsyncSession = Depends(),
+) -> list[GettingBooking]:
+    return await crud_booking.get_many_by(db, user_id=request.state.user.id)
 
 
 @router.post(
@@ -35,17 +33,16 @@ async def get_bookings(
 )
 async def add_booking(
     request: Request,
-    booking: CreatingBooking,
-    db: AsyncSession = Depends(get_db)
-):
-    booking = await crud_booking.add(
-        db, request.state.user.id,
-        booking.room_id,
-        booking.date_from,
-        booking.date_to,
+    obj_in: CreatingBooking,
+    db: AsyncSession = Depends()
+) -> GettingBooking:
+    booking = await crud_booking.create(
+        db, obj_in, request.state.user.id
     )
+
     if not booking:
         raise RoomCannotBeBooked
+    
     return booking
 
 
@@ -56,8 +53,8 @@ async def add_booking(
 async def remove_booking(
     request: Request,
     booking_id: int,
-    db: AsyncSession = Depends(get_db)
-):
+    db: AsyncSession = Depends()
+) -> None:
     await crud_booking.delete(
         db, id=booking_id, user_id=request.state.user.id
     )

@@ -30,6 +30,15 @@ class CRUDBase(Generic[ModelType, CreatingSchemaType, UpdatingSchemaType]):
         return (
             await db.execute(select(self.model.__table__.columns))
         ).mappings().all()
+    
+    async def get_many_by(
+        self, db: AsyncSession, **kwargs
+    ) -> Sequence[ModelType] | None:
+        return (
+            await db.execute(
+                select(self.model.__table__.columns).filter_by(**kwargs)
+            )
+        ).mappings().all()
 
     async def _get_db_obj_fields(
         self, obj_in: dict[str, Any] | BaseSchema, **kwargs
